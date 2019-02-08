@@ -1,0 +1,5 @@
+/void-autoinstall-conf
+.*.sw[a-z]
+~*
+.DS_Store
+/vendor
