@@ -162,9 +162,15 @@ func main() {
 
 func createServer(logAccess bool) *http.Server {
 	mux := httprouter.New()
+
 	mux.GET("/autoinstall.cfg", serveConfig)
+	mux.HEAD("/autoinstall.cfg", serveConfig)
+
 	mux.GET("/boot", serveBoot)
+	mux.HEAD("/boot", serveBoot)
+
 	mux.GET("/boot/:id", serveSavedBoot)
+	mux.HEAD("/boot/:id", serveSavedBoot)
 
 	var handler http.Handler = gziphandler.GzipHandler(mux)
 
@@ -238,7 +244,10 @@ func serveConfig(w http.ResponseWriter, req *http.Request, _ httprouter.Params) 
 
 	w.Header().Set("Content-Length", strconv.Itoa(buf.Len()))
 	w.WriteHeader(http.StatusOK)
-	buf.WriteTo(w)
+
+	if req.Method != "HEAD" {
+		buf.WriteTo(w)
+	}
 }
 
 func serveBoot(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
@@ -320,7 +329,10 @@ func serveBoot(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 
 	w.Header().Set("Content-Length", strconv.Itoa(buf.Len()))
 	w.WriteHeader(http.StatusOK)
-	buf.WriteTo(w)
+
+	if req.Method != "HEAD" {
+		buf.WriteTo(w)
+	}
 }
 
 type savedConfig struct {
@@ -409,7 +421,10 @@ func serveSavedBoot(w http.ResponseWriter, req *http.Request, params httprouter.
 	w.Header().Set("Content-Type", "text/plain")
 	w.Header().Set("Content-Length", strconv.Itoa(config.Len()))
 	w.WriteHeader(http.StatusOK)
-	io.WriteString(w, config.String())
+
+	if req.Method != "HEAD" {
+		io.WriteString(w, config.String())
+	}
 }
 
 var configURLBase = url.URL{
@@ -420,7 +435,8 @@ var configURLBase = url.URL{
 
 func isAuthed(req *http.Request) bool {
 	password := req.Header.Get("Save-Token")
-	return len(authHash) > 0 && password != "" &&
+	return req.Method != "HEAD" &&
+		len(authHash) > 0 && password != "" &&
 		bcrypt.CompareHashAndPassword(authHash, []byte(password)) == nil
 }
 
