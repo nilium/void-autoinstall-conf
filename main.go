@@ -52,6 +52,7 @@ var validators = map[string]Validator{
 	},
 	"end_action": Choice{
 		// func not currently permitted because I don't want to deal with checking it
+		"none",
 		"reboot",
 		"script",
 		"shutdown",
